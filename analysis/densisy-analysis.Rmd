@@ -1,0 +1,440 @@
+---
+title: "Density Analysis"
+author: "pthyde123"
+date: "2023-11-29"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+
+<br>
+
+## Packages
+```{r,  echo=TRUE}
+library(RColorBrewer)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+```
+
+## Import diversity data file
+```{r,  echo=TRUE}
+density <- read_excel("data/2023_oat_pea_data.xlsx", 
+                      sheet = "density")
+```
+
+
+## Grain (oats and peas)
+```{r,  echo=FALSE}
+
+density %>% 
+  select(pea_type,oat_grain_g, pea_grain_g,oatName,peaName,
+         oatDens,peaDens,oat_percent,pea_percent) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g))%>%
+  mutate(inter_crop = str_c(oatName,"_",peaName)) %>%
+  mutate(density_oat_pea = str_c("oat_",oat_percent,"_","pea_",pea_percent)) %>%
+
+  filter(density_oat_pea != "oat_NA_pea_NA") %>% 
+  mutate(density_oat_pea = fct_relevel(density_oat_pea, "oat_0_pea_50","oat_0_pea_100",
+                                       "oat_50_pea_0","oat_100_pea_0",
+                          "oat_50_pea_50",
+                          "oat_50_pea_100", "oat_100_pea_50","oat_100_pea_100"   
+                          )) %>% 
+  
+  ggplot(aes(density_oat_pea, total_grain))+
+  geom_boxplot()+
+  xlab("density_oat_pea")+
+  ylab("Grain g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+```
+
+
+
+
+## Genotype Density Interactions
+
+```{r,  echo=FALSE}
+density_df <-
+density %>% 
+  select(pea_type,oat_grain_g, pea_grain_g,oatName,peaName,
+         oatDens,peaDens,oat_percent,pea_percent) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g))%>%
+  mutate(inter_crop = str_c(oatName,"_",peaName)) %>%
+  mutate(density_oat_pea = str_c("oat_",oat_percent,"_","pea_",pea_percent)) %>%
+  
+  filter(density_oat_pea != "oat_NA_pea_NA") %>% 
+  mutate(density_oat_pea = fct_relevel(density_oat_pea, "oat_0_pea_50","oat_0_pea_100",
+                                       "oat_50_pea_0","oat_100_pea_0",
+                                       "oat_50_pea_50",
+                                       "oat_50_pea_100", "oat_100_pea_50","oat_100_pea_100"   
+  ))
+
+
+density_df  %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+
+
+
+```
+
+
+
+<br/>  
+<br/> 
+
+## Oat density on pea density interaction
+
+<br/>  
+
+$$
+{yield} = \beta_{0} + \beta_{1}({oatName}) + \beta_{2}({peaName}) + \beta_{3}({pea\_percent}) + \beta_{4}({oat\_percent}) + \beta_{5}({oat\_percent}*{pea\_percent}) + \epsilon
+$$
+
+
+
+
+
+
+```{r,  echo=FALSE}
+
+
+lm_density  <- lm((total_grain) ~ oatName + peaName + pea_percent + oat_percent+
+                  oat_percent * pea_percent,data=density_df)
+
+anova(lm_density)
+
+lm_density  <- lm((oat_grain_g) ~ oatName + peaName + pea_percent + oat_percent+
+                  oat_percent * pea_percent,data=density_df)
+
+anova(lm_density)
+
+lm_density  <- lm((pea_grain_g) ~ oatName + peaName + pea_percent + oat_percent+
+                  oat_percent * pea_percent,data=density_df)
+
+anova(lm_density)
+
+
+
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+<br/>  
+<br/> 
+
+## Oat genotype by pea density interaction 
+
+<br/>  
+
+$$
+{yield} = \beta_{0} + \beta_{1}({oatName}) + \beta_{2}({peaName}) + \beta_{3}({pea\_percent}) + \beta_{4}({oat\_percent}) + \beta_{5}({oatName}*{pea\_percent}) + \epsilon
+$$
+
+
+
+```{r,  echo=FALSE}
+
+
+lm_density  <- lm((total_grain) ~ oatName + peaName + pea_percent + oat_percent + oatName * pea_percent ,data=density_df)
+
+anova(lm_density)
+
+
+lm_density  <- lm((oat_grain_g) ~ oatName + peaName + pea_percent + oat_percent + oatName * pea_percent ,data=density_df)
+
+anova(lm_density)
+
+
+lm_density  <- lm((pea_grain_g) ~ oatName + peaName + pea_percent + oat_percent + oatName * pea_percent ,data=density_df)
+
+anova(lm_density)
+
+
+
+
+```
+
+
+
+<br/>  
+<br/> 
+
+## Pea genotype by oat percent interaction
+
+<br/>
+$$
+{yield} = \beta_{0} + \beta_{1}({oatName}) + \beta_{2}({peaName}) + \beta_{3}({pea\_percent}) + \beta_{4}({oat\_percent}) + \beta_{5}({peaName}*{oat\_percent}) + \epsilon
+$$
+
+
+```{r,  echo=FALSE}
+
+
+lm_density  <- lm((total_grain) ~ oatName + peaName + pea_percent + oat_percent + peaName * oat_percent ,data=density_df)
+
+anova(lm_density)
+
+
+lm_density  <- lm((oat_grain_g) ~ oatName + peaName + pea_percent + oat_percent + peaName * oat_percent ,data=density_df)
+
+anova(lm_density)
+
+
+lm_density  <- lm((pea_grain_g) ~ oatName + peaName + pea_percent + oat_percent + peaName * oat_percent ,data=density_df)
+
+anova(lm_density)
+
+
+
+
+```
+
+
+## Model for plot that clearly shows pea density X pea type interaction
+
+```{r,  echo=FALSE}
+
+density %>% 
+  select(pea_type,oat_grain_g, pea_grain_g,oatName,peaName,
+         oatDens,peaDens,oat_percent,pea_percent) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g))%>%
+  mutate(inter_crop = str_c(oatName,"_",peaName)) %>%
+  mutate(density_oat_pea = str_c("oat_",oat_percent,"_","pea_",pea_percent)) %>%
+  
+  filter(density_oat_pea != "oat_NA_pea_NA") %>% 
+  mutate(density_oat_pea = fct_relevel(density_oat_pea, "oat_0_pea_50","oat_0_pea_100",
+                                       "oat_50_pea_0","oat_100_pea_0",
+                                       "oat_50_pea_50",
+                                       "oat_50_pea_100", "oat_100_pea_50","oat_100_pea_100"   
+  )) %>%
+  filter(density_oat_pea %in% c("oat_50_pea_50",
+                                       "oat_50_pea_100", 
+                                       "oat_100_pea_50",
+                                       "oat_100_pea_100")) %>% 
+  
+  ggplot(aes(density_oat_pea, total_grain))+
+  geom_boxplot()+
+  xlab("density_oat_pea")+
+  ylab("Total Harvest g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))+
+  facet_wrap(~pea_type)
+
+
+
+```
+
+
+
+
+
+
+
+<br/>  
+<br/> 
+
+$$
+{yield} = \beta_{0} + \beta_{1}({oatName}) + \beta_{2}({pea\_type}) + \beta_{3}({oat\_percent}) + \beta_{4}({pea\_percent}) + \beta_{5}({pea\_type}*{pea\_percent}) + \epsilon
+$$
+
+
+
+
+```{r,  echo=FALSE}
+
+density_no_0 <- density_df %>% 
+  filter(density_oat_pea %in% c("oat_50_pea_50",
+                                       "oat_50_pea_100", 
+                                       "oat_100_pea_50",
+                                       "oat_100_pea_100")) 
+
+lm_density  <- lm((total_grain) ~ oatName + pea_type + oat_percent + pea_percent + 
+                  pea_type * pea_percent,data=density_no_0)
+
+anova(lm_density)
+
+lm_density  <- lm((oat_grain_g) ~ oatName + pea_type + oat_percent + pea_percent + 
+                  pea_type * pea_percent,data=density_no_0)
+
+anova(lm_density)
+
+lm_density  <- lm((pea_grain_g) ~ oatName + pea_type + oat_percent + pea_percent + 
+                  pea_type * pea_percent,data=density_no_0)
+
+anova(lm_density)
+
+
+
+```
+
+
+
+
+
+
+
+## Histograms of yield data
+
+```{r, out.width="200px", out.height="200px",echo=FALSE}
+
+density_df %>% 
+  ggplot(aes(total_grain))+
+  geom_histogram(binwidth=50, color="black", fill="grey")+
+  xlab("Yield g")+
+  ylab("Count")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+density_df %>% 
+  ggplot(aes(oat_grain_g))+
+  geom_histogram(binwidth=50, color="black", fill="grey")+
+  xlab("Oat g")+
+  ylab("Count")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+density_df %>% 
+  ggplot(aes(pea_grain_g))+
+  geom_histogram(binwidth=50, color="black", fill="grey")+
+  xlab("Pea g")+
+  ylab("Count")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+
+Yield data looks somewhat normally distributed
+
+
+
+
+
+## Biomass
+
+```{r,  echo=FALSE}
+
+density %>% 
+  
+  select(`pea_type`,peaName,Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  filter(pea_type != "na") %>%
+  pivot_longer(Biomass_1_pea_g:Biomass_4_oat_g, names_to = "biomass", 
+               values_to = "biomass_g") %>% 
+  mutate(biomass = as.factor(biomass)) %>%
+  mutate(biomass_g = as.numeric(biomass_g)) %>%
+  mutate(biomass = fct_relevel(biomass, "Biomass_1_pea_g",
+                               "Biomass_2_pea_g","Biomass_3_pea_g","Biomass_4_pea_g",
+                               "Biomass_1_oat_g","Biomass_2_oat_g",
+                               "Biomass_3_oat_g",
+                               "Biomass_4_oat_g")) %>%
+  
+  ggplot(aes(biomass,`biomass_g`,fill=biomass))+
+  geom_boxplot() +
+  xlab("Pea Type")+
+  ylab("Biomass g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+
+
+```
+
+
+
+
+
+
+```{r,echo=FALSE}
+
+density %>% 
+  
+  select(`pea_type`,peaName,Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  filter(pea_type != "na") %>%
+  pivot_longer(Biomass_1_pea_g:Biomass_4_oat_g, names_to = "biomass", 
+               values_to = "biomass_g") %>% 
+  mutate(biomass = as.factor(biomass)) %>%
+  mutate(biomass_g = as.numeric(biomass_g)) %>%
+  mutate(biomass = fct_relevel(biomass, "Biomass_1_pea_g",
+                               "Biomass_2_pea_g","Biomass_3_pea_g","Biomass_4_pea_g",
+                               "Biomass_1_oat_g","Biomass_2_oat_g",
+                               "Biomass_3_oat_g",
+                               "Biomass_4_oat_g")) %>%
+  
+  ggplot(aes(`pea_type`,`biomass_g`,fill=biomass))+
+  geom_boxplot() +
+  xlab("Pea Type")+
+  ylab("Biomass g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 0, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+
+
+
+
+```
+
+
+
+
+

@@ -1,0 +1,437 @@
+---
+title: "UAV Analysis"
+author: "pthyde123"
+date: "2023-11-29"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+<br>
+
+## Packages
+
+```{r,  echo=TRUE}
+library(RColorBrewer)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+```
+
+## Create plot meta data
+
+```{r,  echo=FALSE}
+
+library(tidyverse)
+
+
+library(readxl)
+
+
+
+conv <- read_excel("data/plot_no_conversion.xlsx",
+                   sheet = "sub_plot_conversion")
+
+t3_densisty <- read_excel("data/2023_oat_pea_data.xlsx",
+                          sheet = "T3_density", skip = 3)
+
+t3_diversity <- read_excel("data/2023_oat_pea_data.xlsx",
+                           sheet = "T3_diversity", skip = 3)
+
+
+
+plot_meta <- read_csv("data/plot_meta.csv") %>% 
+  mutate(oat_pea_percent = str_c(oat_percent,"_",pea_percent))
+
+
+
+```
+
+Sub-plot meta data is used to join factors with QGIS data using `fid` or to ground data using `exp_plot_subplot`
+
+```{r,  echo=FALSE}
+
+plot_meta %>% 
+  select(fid,prow,pcol,grow,exp_plot_subplot,oatName,peaName,pea_type,oat_percent,pea_percent,oat_pea_percent) %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+
+```
+
+## Canopy percent is calculated in QGIS
+
+A threshold of ExG \> 0.1 is used to calculate the canopy closure of each subplot
+
+![Calculate Canopy Percent using Excess Green](images/cover_6_1.jpg){width="100%"}
+
+## Import QGIS Calculated Cover
+
+added in planting date = 0 cover
+
+```{r,  echo=FALSE}
+
+cover_summary <- read_excel("data/cover_summary.xlsx") %>% 
+  select(fid,exp,plot.x,sub_plot,oatName,peaName,pea_type,oat_percent,pea_percent,ExG_01_mean,"6_1_mean","6_20_mean","7_8_mean","8_1_mean") %>% 
+  mutate("5_18_mean" = ExG_01_mean) %>% 
+  mutate(oat_pea_percent = str_c(oat_percent,"_",pea_percent)) %>% 
+  filter(pea_percent != "NA") %>% 
+  mutate(pea_type = if_else(pea_type == "grain", "field", pea_type)) %>% 
+  mutate(`4_13_mean` = 0) %>% 
+  select(fid,"4_13_mean","5_18_mean","6_1_mean","6_20_mean","7_8_mean","8_1_mean") 
+  
+
+
+
+```
+
+Mean cover for each subplot on each date of flight.
+
+```{r,  echo=FALSE}
+
+cover_summary %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+
+```
+
+QGIS canopy closure data is joined using `fid` with sup-plot meta data
+
+```{r,  echo=FALSE}
+join_data <- cover_summary %>% left_join(plot_meta, by = join_by(fid)) %>% 
+  select(fid,exp_plot_subplot,oatName,peaName,oat_pea_percent,pea_type,"4_13_mean","5_18_mean","6_1_mean","6_20_mean","7_8_mean","8_1_mean") %>% 
+  mutate(oat_pea_percent = fct_relevel(oat_pea_percent,c("0_50","0_100","50_50","75_75","50_100","100_100","100_50","100_0","50_0","100_na")))
+
+```
+
+```{r,  echo=FALSE}
+
+join_data %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+
+```
+
+```{r,  echo=FALSE}
+
+join_data %>% 
+ggplot(aes(oat_pea_percent, `5_18_mean`))+
+  geom_boxplot()+
+  xlab("density_oat_pea")+
+  ylab("Canopy Closure 5_18")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+```{r,  echo=FALSE}
+
+join_data %>% 
+ggplot(aes(oat_pea_percent, `6_1_mean`))+
+  geom_boxplot()+
+  xlab("density_oat_pea")+
+  ylab("Canopy Closure 6_1")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+```{r,  echo=FALSE}
+
+join_data %>% 
+  pivot_longer(`4_13_mean`:`8_1_mean`, names_to = "day", values_to = "percent" ) %>% 
+  mutate(day = if_else(day=="4_13_mean","103",day)) %>%
+  mutate(day = if_else(day=="5_18_mean","138",day)) %>% 
+  mutate(day = if_else(day=="6_1_mean","152",day)) %>% 
+  mutate(day = if_else(day=="6_20_mean","171",day)) %>% 
+  mutate(day = if_else(day=="7_8_mean","189",day)) %>% 
+  mutate(day = if_else(day=="8_1_mean","213",day)) %>% 
+  mutate(day = as.numeric(day)) %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+  scroll_box(width = "900px", height = "300px")
+  
+```
+
+Is ExG late season a useful predictor of canopy closure? Is the decrease after 180 days senescence?
+
+```{r,  echo=FALSE}
+join_data %>% 
+  pivot_longer(`4_13_mean`:`8_1_mean`, names_to = "day", values_to = "percent" ) %>% 
+  mutate(day = if_else(day=="4_13_mean","103",day)) %>%
+  mutate(day = if_else(day=="5_18_mean","138",day)) %>% 
+  mutate(day = if_else(day=="6_1_mean","152",day)) %>% 
+  mutate(day = if_else(day=="6_20_mean","171",day)) %>% 
+  mutate(day = if_else(day=="7_8_mean","189",day)) %>% 
+  mutate(day = if_else(day=="8_1_mean","213",day)) %>% 
+  mutate(day = as.numeric(day)) %>% 
+  
+  filter(pea_type != "na") %>% 
+  
+  ggplot(aes(day,percent,color=pea_type))+
+  geom_smooth(method = "loess")+
+  xlab("Day")+
+  ylab("Canopy Closure")+
+  scale_color_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+```{r,  echo=FALSE}
+join_data %>% 
+  pivot_longer(`4_13_mean`:`8_1_mean`, names_to = "day", values_to = "percent" ) %>% 
+  mutate(day = if_else(day=="4_13_mean","103",day)) %>%
+  mutate(day = if_else(day=="5_18_mean","138",day)) %>% 
+  mutate(day = if_else(day=="6_1_mean","152",day)) %>% 
+  mutate(day = if_else(day=="6_20_mean","171",day)) %>% 
+  mutate(day = if_else(day=="7_8_mean","189",day)) %>% 
+  mutate(day = if_else(day=="8_1_mean","213",day)) %>% 
+  mutate(day = as.numeric(day)) %>% 
+  
+  filter(pea_type != "na") %>% 
+  
+  ggplot(aes(day,percent,color=oatName))+
+  geom_smooth(method = "loess",se=F)+
+  xlab("Day")+
+  ylab("Canopy Closure")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+## Height Summary
+
+```{r,  echo=FALSE}
+t3_densisty <- read_excel("data/2023_oat_pea_data.xlsx",
+                                 sheet = "T3_density", skip = 3)
+
+t3_diversity <- read_excel("data/2023_oat_pea_data.xlsx",
+                          sheet = "T3_diversity", skip = 3)
+
+density <- t3_densisty %>% select(studyName,observationLevel,observationUnitName,replicate,blockNumber,plotNumber,rowNumber,colNumber,
+                       'Pea plant height - cm|day 164|COMP:0000040','Pea plant height - cm|day 180|COMP:0000041',
+                       'Pea plant height - cm|day 186|COMP:0000042','Pea plant height - cm|day 200|COMP:0000043',
+                       'Pea plant height - cm|day 208|COMP:0000044','Plant height - cm|day 164|COMP:0000023',
+                       'Plant height - cm|day 180|COMP:0000024','Plant height - cm|day 186|COMP:0000025',
+                       'Plant height - cm|day 200|COMP:0000026',	'Plant height - cm|day 208|COMP:0000027') %>%
+                filter(observationLevel == "subplot")
+
+diverstiy <- t3_diversity %>% select(studyName,observationLevel,observationUnitName,replicate,blockNumber,plotNumber,rowNumber,colNumber,
+                       'Pea plant height - cm|day 164|COMP:0000040','Pea plant height - cm|day 180|COMP:0000041',
+                       'Pea plant height - cm|day 186|COMP:0000042','Pea plant height - cm|day 200|COMP:0000043',
+                       'Pea plant height - cm|day 208|COMP:0000044','Plant height - cm|day 164|COMP:0000023',
+                       'Plant height - cm|day 180|COMP:0000024','Plant height - cm|day 186|COMP:0000025',
+                       'Plant height - cm|day 200|COMP:0000026',	'Plant height - cm|day 208|COMP:0000027')  %>%
+                filter(observationLevel == "subplot")
+
+comb_data <- bind_rows(density,diverstiy)
+
+old_names <- colnames(select(comb_data,'Pea plant height - cm|day 164|COMP:0000040','Pea plant height - cm|day 180|COMP:0000041',
+                       'Pea plant height - cm|day 186|COMP:0000042','Pea plant height - cm|day 200|COMP:0000043',
+                       'Pea plant height - cm|day 208|COMP:0000044','Plant height - cm|day 164|COMP:0000023',
+                       'Plant height - cm|day 180|COMP:0000024','Plant height - cm|day 186|COMP:0000025',
+                       'Plant height - cm|day 200|COMP:0000026',	'Plant height - cm|day 208|COMP:0000027'))
+
+new_names <- old_names %>%  str_remove(" plant height -") %>%
+  str_remove(" height -") %>%
+  str_replace("Plant", "Oat") %>%
+  str_sub(1,14) %>%
+  str_replace("day ","d_") %>%
+  str_replace("Pea cm","pea_cm") %>%
+  str_replace("Oat cm","oat_cm")
+
+
+old_data <- select(comb_data,'Pea plant height - cm|day 164|COMP:0000040','Pea plant height - cm|day 180|COMP:0000041',
+       'Pea plant height - cm|day 186|COMP:0000042','Pea plant height - cm|day 200|COMP:0000043',
+       'Pea plant height - cm|day 208|COMP:0000044','Plant height - cm|day 164|COMP:0000023',
+       'Plant height - cm|day 180|COMP:0000024','Plant height - cm|day 186|COMP:0000025',
+       'Plant height - cm|day 200|COMP:0000026',	'Plant height - cm|day 208|COMP:0000027')
+
+
+new_data <- old_data %>% rename_at(vars(old_names), ~new_names)
+
+
+data <- bind_cols(select(comb_data,studyName,observationLevel,observationUnitName,replicate,blockNumber,plotNumber,rowNumber,colNumber),
+          new_data) 
+
+data <- data %>% mutate("subplot" = str_sub(data$observationUnitName,-1)) %>%
+  mutate("exp" = if_else(studyName == "Cornell_OatPeaDensity_2023_Ithaca","density","diversity")) %>%
+  mutate("exp_plot_subplot" = str_c(exp,"_",plotNumber,"_",subplot))
+
+
+
+
+
+
+conv <- read_excel("data/plot_no_conversion.xlsx",
+           sheet = "sub_plot_conversion")
+
+
+
+
+`2023_5_18_sub_height` <- read_excel("data/2023_5_18_sub_height.xlsx") %>%
+  mutate("prow_pcol_grow" = str_c(prow,"_",pcol,"_",grow))
+
+`2023_6_1_sub_height` <- read_excel("data/2023_6_1_sub_height.xlsx") %>%
+  mutate("prow_pcol_grow" = str_c(prow,"_",pcol,"_",grow))
+
+`2023_6_20_sub_height` <- read_excel("data/2023_6_20_sub_height.xlsx") %>%
+  mutate("prow_pcol_grow" = str_c(prow,"_",pcol,"_",grow))
+
+`2023_7_8_sub_height` <- read_excel("data/2023_7_8_sub_height.xlsx") %>%
+  mutate("prow_pcol_grow" = str_c(prow,"_",pcol,"_",grow))
+
+`2023_8_1_sub_height` <- read_excel("data/2023_8_1_sub_height.xlsx") %>%
+  mutate("prow_pcol_grow" = str_c(prow,"_",pcol,"_",grow))
+
+
+drone_height <- `2023_5_18_sub_height` %>%
+  left_join(`2023_6_1_sub_height`) %>%
+  left_join(`2023_6_20_sub_height`) %>%
+  left_join(`2023_7_8_sub_height`) %>%
+  left_join(`2023_8_1_sub_height`) %>%
+  select("prow_pcol_grow",`2023_5_18_mean`,"2023_6_1_sub_heightmean",
+         "2023_6_20_sub_heightmean","2023_7_8_sub_heightmean",
+         "2023_8_1_sub_heightmean")
+
+
+drone_height <- drone_height %>%  mutate("height_6_1" = `2023_6_1_sub_heightmean`-`2023_5_18_mean`) %>%
+  mutate("height_6_20" = `2023_6_20_sub_heightmean`-`2023_5_18_mean`) %>%
+  mutate("height_7_8" = `2023_7_8_sub_heightmean`-`2023_5_18_mean`-35.7237589) %>% #### add rough correction factor
+  mutate("height_8_1" = `2023_8_1_sub_heightmean`-`2023_5_18_mean`)
+
+
+drone_height <- drone_height %>%
+  left_join(conv,by="prow_pcol_grow") %>%
+  select(exp,plot,sub_plot,prow_pcol_grow,exp_plot_subplot,height_6_1,height_6_20,height_7_8,height_8_1) %>%
+  filter(exp != "guard")
+
+
+data2<-data %>% select(exp_plot_subplot,`pea_cm|d_164`:`oat_cm|d_208`)
+
+
+
+```
+
+Ground height from T3
+
+```{r,  echo=FALSE}
+
+data2 %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+
+
+```
+
+Join ground height with subplot meta data
+
+```{r,  echo=FALSE}
+
+data3 <- data2 %>% 
+    left_join(plot_meta, by = join_by(exp_plot_subplot))
+
+
+```
+
+```{r,  echo=FALSE}
+
+data3 %>% 
+    select(exp_plot_subplot, oat_pea_percent, oatName, peaName, `pea_cm|d_164`:`oat_cm|d_208`) %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+ scroll_box(width = "900px", height = "300px")
+ 
+
+```
+
+```{r,  echo=FALSE}
+
+data3 %>% 
+  filter(pea_type != "na") %>%
+  mutate(plot = plot.x) %>% 
+  select(oatName:plot,pea_type,`pea_cm|d_164`,`pea_cm|d_180`,`pea_cm|d_186`,`pea_cm|d_200`,`pea_cm|d_208`) %>% 
+  mutate(`pea_cm|d_103` = 0) %>% 
+  pivot_longer(cols = starts_with("pea_cm"), names_to = "day", values_to = "height" ) %>% 
+ 
+  mutate(day = if_else(day=="pea_cm|d_103","103",day)) %>%
+  mutate(day = if_else(day=="pea_cm|d_164","164",day)) %>% 
+  mutate(day = if_else(day=="pea_cm|d_180","180",day)) %>% 
+  mutate(day = if_else(day=="pea_cm|d_186","186",day)) %>% 
+  mutate(day = if_else(day=="pea_cm|d_200","200",day)) %>% 
+  mutate(day = if_else(day=="pea_cm|d_208","208",day)) %>% 
+  mutate(day = as.numeric(day)) %>% 
+  group_by(pea_type,day) %>%
+  summarise(mean = mean(height,na.rm = TRUE), n = n()) %>% 
+  
+  ggplot(aes(day,mean,color=pea_type))+
+  geom_line()+
+  xlab("Day")+
+  ylab("Pea_Canopy Height")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+  
+```
+
+```{r,  echo=FALSE}
+data3 %>% 
+  filter(pea_type != "na") %>% 
+  mutate(plot = plot.x) %>%
+  select(oatName:plot,pea_type,`oat_cm|d_164`,`oat_cm|d_180`,`oat_cm|d_186`,`oat_cm|d_200`,`oat_cm|d_208`) %>% 
+  mutate(`oat_cm|d_103` = 0) %>% 
+  pivot_longer(cols = starts_with("oat_cm"), names_to = "day", values_to = "height" ) %>% 
+  
+  mutate(day = if_else(day=="oat_cm|d_103","103",day)) %>%
+  mutate(day = if_else(day=="oat_cm|d_164","164",day)) %>% 
+  mutate(day = if_else(day=="oat_cm|d_180","180",day)) %>% 
+  mutate(day = if_else(day=="oat_cm|d_186","186",day)) %>% 
+  mutate(day = if_else(day=="oat_cm|d_200","200",day)) %>% 
+  mutate(day = if_else(day=="oat_cm|d_208","208",day)) %>% 
+  mutate(day = as.numeric(day)) %>% 
+  group_by(pea_type,day) %>%
+  summarise(mean = mean(height,na.rm = TRUE), n = n()) %>% 
+  
+  ggplot(aes(day,mean,color=pea_type))+
+  geom_line()+
+  xlab("Day")+
+  ylab("Oat Canopy Height")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+```
+
+```{r,  echo=FALSE}
+
+drone_height
+
+
+```

@@ -1,0 +1,71 @@
+---
+title: "Field Planning"
+author: "pthyde123"
+date: "2023-11-29"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+
+
+
+
+## Introduction
+
+```{r}
+
+
+```
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+
+<br>
+
+
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+library(RColorBrewer)
+library(readr)
+
+```
+
+
+
+### Data Categories
+Stand Count  
+Height  
+Canopy Percent  
+Biomass  
+Grain Harvest  
+ 
+<br> 
+  
+Tasks are grouped into **four** 3 week blocks for the summer.  
+
+* Growth (wk1)
+  + Height, canopy, drone image(last)
+* Biomass (wk2)
+  + Collect plants from quadrat
+* Maintenance (wk3)
+  + Data and plots
+  
+  
+<br>
+
+
+
+
+
+
+
+

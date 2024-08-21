@@ -1,0 +1,268 @@
+---
+title: "Diversity Analysis"
+author: "pthyde123"
+date: "2023-11-29"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+
+<br>
+
+## Packages
+```{r,  echo=TRUE}
+library(RColorBrewer)
+library(tidyverse)
+library(readxl)
+
+```
+
+## Import diversity data file
+```{r,  echo=TRUE}
+diversity <- read_excel("data/2023_oat_pea_data.xlsx", 
+                      sheet = "diversity")
+```
+
+
+# Grain Harvest
+```{r,  echo=FALSE}
+
+diversity %>% 
+  select(plot_number,`pea_type`,`Lodging_7.5.23`,peaName,pea_grain_g,oat_grain_g) %>% 
+  filter(plot_number != "27") %>% 
+  mutate(lodging = as.numeric(`Lodging_7.5.23`)) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g))%>%
+  ggplot(aes(`pea_type`,`total_grain`))+
+  geom_boxplot() +
+  geom_jitter(aes(`pea_type`,`total_grain`,color=peaName),width = 0.25,size=4)+
+  xlab("")+
+  ylab("Total Grain_g")+
+  scale_color_brewer(palette="Paired")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+```
+
+
+
+
+```{r,  echo=FALSE}
+
+
+diversity %>% 
+  select(plot_number,`pea_type`,`Lodging_7.5.23`,peaName,pea_grain_g,oat_grain_g) %>% 
+  filter(plot_number != "27") %>% 
+  mutate(lodging = as.numeric(`Lodging_7.5.23`)) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g))%>%
+  pivot_longer(pea_grain_g:oat_grain_g, 
+               names_to = "grain_type", values_to = "grain_g") %>% 
+  mutate(grain_type = str_sub(grain_type, 1,3 )) %>% 
+  
+  
+  ggplot(aes(`grain_type`,`grain_g`))+
+  geom_boxplot() +
+  geom_jitter(aes(`grain_type`,`grain_g`,color=peaName),width = 0.25,size=4)+
+  xlab("")+
+  ylab("Grain g")+
+  scale_color_brewer(palette="Paired")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 0, hjust = .5))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))+
+  facet_wrap(~pea_type)
+
+```
+
+
+
+## Lodging
+
+```{r,  echo=FALSE}
+
+diversity %>% 
+  select(plot_number,`pea_type`,`Lodging_7.5.23`,peaName,pea_grain_g,oat_grain_g) %>% 
+  filter(plot_number != "27") %>% 
+  mutate(lodging = as.numeric(`Lodging_7.5.23`)) %>% 
+  ggplot(aes(`pea_type`,`lodging`))+
+  geom_boxplot() +
+  geom_jitter(aes(`pea_type`,`lodging`,color=peaName),width = 0.25,size=4)+
+  xlab("")+
+  ylab("Lodging 7.5.23")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+
+
+```
+
+
+
+
+
+
+
+
+## Biomass
+
+```{r,echo=FALSE,eval=FALSE}
+
+diversity %>% 
+  select(plot_number,`pea_type`,peaName,pea_grain_g,oat_grain_g,
+         Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  mutate(biomass_1 = (Biomass_1_pea_g + Biomass_1_oat_g)) %>% 
+  mutate(biomass_2 = (Biomass_2_pea_g + Biomass_2_oat_g)) %>%
+  mutate(biomass_3 = (Biomass_3_pea_g + Biomass_3_oat_g)) %>%
+  mutate(biomass_4 = (Biomass_4_pea_g + Biomass_4_oat_g))
+
+
+```
+
+
+
+
+
+
+
+
+
+
+```{r,  echo=FALSE}
+
+diversity %>% 
+  select(plot_number,`pea_type`,peaName,pea_grain_g,oat_grain_g,
+         Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  mutate(biomass_1 = (Biomass_1_pea_g + Biomass_1_oat_g)) %>% 
+  mutate(biomass_2 = (Biomass_2_pea_g + Biomass_2_oat_g)) %>%
+  mutate(biomass_3 = (Biomass_3_pea_g + Biomass_3_oat_g)) %>%
+  mutate(biomass_4 = (Biomass_4_pea_g + Biomass_4_oat_g)) %>% 
+  select(`pea_type`,peaName,biomass_1,biomass_2,biomass_3,biomass_4) %>% 
+  pivot_longer(biomass_1:biomass_4, names_to = "biomass", values_to = "biomass_g") %>% 
+  ggplot(aes(`pea_type`,`biomass_g`,fill=biomass))+
+  geom_boxplot() +
+  xlab("")+
+  ylab("Total Biomass g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+
+
+```
+
+
+
+
+
+
+
+```{r,  echo=FALSE}
+
+diversity %>% 
+  select(plot_number,`pea_type`,peaName,pea_grain_g,oat_grain_g,
+         Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  mutate(biomass_1 = (Biomass_1_pea_g + Biomass_1_oat_g)) %>% 
+  mutate(biomass_2 = (Biomass_2_pea_g + Biomass_2_oat_g)) %>%
+  mutate(biomass_3 = (Biomass_3_pea_g + Biomass_3_oat_g)) %>%
+  mutate(biomass_4 = (Biomass_4_pea_g + Biomass_4_oat_g)) %>% 
+  select(`pea_type`,peaName,Biomass_1_pea_g,Biomass_1_oat_g,
+         Biomass_2_pea_g,Biomass_2_oat_g,
+         Biomass_3_pea_g,Biomass_3_oat_g,
+         Biomass_4_pea_g,Biomass_4_oat_g) %>% 
+  pivot_longer(Biomass_1_pea_g:Biomass_4_oat_g, names_to = "biomass", 
+               values_to = "biomass_g") %>% 
+  mutate(biomass = as.factor(biomass)) %>% 
+  mutate(biomass = fct_relevel(biomass, "Biomass_1_pea_g",
+                        "Biomass_2_pea_g","Biomass_3_pea_g","Biomass_4_pea_g",
+                        "Biomass_1_oat_g","Biomass_2_oat_g",
+                        "Biomass_3_oat_g",
+                        "Biomass_4_oat_g")) %>%
+  
+  ggplot(aes(`pea_type`,`biomass_g`,fill=biomass))+
+  geom_boxplot() +
+  xlab("Pea Type")+
+  ylab("Biomass g")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 0, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+
+
+
+
+```
+
+
+
+
+
+## Drone vs. Ground Height
+
+```{r,  echo=FALSE}
+
+  
+diversity %>% 
+  select(plot_number,`pea_type`,`Lodging_7.5.23`,peaName,pea_grain_g,
+         oat_grain_g,`2023_8_1_heightmean`,max_height_7.27.23) %>% 
+  filter(plot_number != "27") %>% 
+  mutate(lodging = as.numeric(`Lodging_7.5.23`)) %>% 
+  mutate(total_grain = (oat_grain_g + pea_grain_g)) %>% 
+  mutate(`2023_8_1_heightmean`= (`2023_8_1_heightmean`*100)) %>% 
+  ggplot(aes(`2023_8_1_heightmean`,max_height_7.27.23)) +
+  geom_point() +
+  geom_smooth(method=lm,se=FALSE, col='red', size=2)+
+  xlab("Drone Height cm")+
+  ylab("Measured Height cm")+
+  scale_fill_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 0, hjust = 1))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16))
+  
+
+
+
+```
+
+
+
+
+
+
+
+```{r,  echo=FALSE}
+
+
+
+
+```
+

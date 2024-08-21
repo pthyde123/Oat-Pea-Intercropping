@@ -8,4 +8,21 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+
+# 2023 Oat-Pea Inter-cropping
+
+
+[Field Plans](field_planning.html)
+
+[Cornell Density Summary](densisy-analysis.html)
+
+[Cornell Diversity Summary](diversity-analysis.html)
+
+[Multi-location Analysis](multi_location-analysis.html)
+
+[Multi-location Weather](weather_2023.html)
+
+[UAV Analysis](UAV-analysis.html)
+
+[Grin Map](grin_map/grin_map.html)
+

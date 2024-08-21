@@ -1,0 +1,197 @@
+---
+title: "Weather 2023"
+author: "pthyde123"
+date: "2024-02-13"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+
+<br>
+
+### Packages
+```{r,  echo=TRUE}
+library(RColorBrewer)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+
+
+```
+
+
+
+
+### Loacation Weather
+
+```{r,  echo=FALSE}
+
+weather <- read_excel("data/2023_location_weather.xlsx")
+
+weather %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")%>% 
+  scroll_box(width = "900px", height = "300px")
+
+
+
+```
+
+<br>
+
+### Daily Max and Min Temperature
+```{r,  echo=FALSE}
+
+weather %>% 
+  select(location,Date,max,min) %>% 
+  ggplot(aes(Date,color=type))+
+  geom_line(aes(y = max), size=1, color = "red")+
+  geom_line(aes(y = min), size=1, color = "blue")+
+  xlab("")+
+  ylab("Temperature °F")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = .5))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16)) +
+  geom_vline(xintercept = 0)+
+  geom_hline(yintercept = 0)+
+  theme(legend.position = "none") +
+  facet_wrap(~location)
+  
+``` 
+
+<br>
+
+### Average Daily Temperatures
+```{r,  echo=FALSE}
+
+
+weather %>% 
+  select(location,Date,max,min,ave) %>% 
+  ggplot(aes(Date, ave ,color=location))+
+  geom_line(size=1)+
+  xlab("")+
+  ylab("Temperature \n (ave °F)")+
+  scale_color_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = .5))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16)) +
+  theme(legend.position = "right") +
+  facet_wrap(~location)
+
+
+  
+
+```
+
+
+
+<br>
+
+### Cumulative Rainfall
+```{r,  echo=FALSE}
+
+
+weather %>% 
+  select(location,Date,precip_cumu) %>% 
+  ggplot(aes(Date, precip_cumu ,color=location))+
+  geom_line(size=1)+
+  xlab("")+
+  ylab("Cumulative Precipitation \n (inchs) ")+
+  
+  scale_color_brewer(palette="Dark2")+
+  theme_classic()+
+  theme(axis.text.x=element_text(angle = 90, hjust = .5))+
+  theme(axis.text=element_text(size=20), axis.title=element_text(size=20,face="bold"))+
+  theme(axis.text.x = element_text(face = "bold", color = "black", size = 16))+
+  theme(axis.text.y = element_text(face = "bold", color = "black", size = 16)) +
+  theme(legend.position = "right")
+
+
+```
+
+
+
+```{r,  echo=FALSE}
+
+library(readxl)
+Wisconsin <- read_excel("data/multi_location_data.xlsx",
+                        sheet = "Wisconsin", skip = 2) %>%
+
+  mutate(grain_yield = as.numeric(`Grain yield - g/m2|CO_350:0000260`)) %>%
+  mutate(pea_yield = as.numeric(`Pea grain yield - g/m2|COMP:0000049`)) %>%
+  select(studyName,locationName,germplasmName,replicate, blockNumber,
+         plotNumber, rowNumber, colNumber,
+         grain_yield,
+         pea_yield,
+         peaName,plantingDate)%>% 
+  filter(plotNumber != 51)  ### plot 51 looks to have yield of oat and pea switched, removed for now
+
+Cornell <- read_excel("data/multi_location_data.xlsx",
+                      sheet = "Cornell", skip = 2)%>%
+  filter(plotNumber != "27") %>%
+  mutate(grain_yield = as.numeric(`Grain yield - g/m2|CO_350:0000260`)) %>%
+  mutate(pea_yield = as.numeric(`Pea grain yield - g/m2|COMP:0000049`)) %>%
+
+  select(studyName,locationName,germplasmName,replicate, blockNumber,
+         plotNumber, rowNumber, colNumber,
+         grain_yield,
+         pea_yield,
+         peaName,plantingDate)
+
+Illinois <- read_excel("data/multi_location_data.xlsx",
+                       sheet = "Illinois", skip = 2)%>%
+  mutate(grain_yield = as.numeric(`Grain yield - g/m2|CO_350:0000260`)) %>%
+  mutate(pea_yield = as.numeric(`Pea grain yield - g/m2|COMP:0000049`)) %>%
+  select(studyName,locationName,germplasmName,replicate, blockNumber,
+         plotNumber, rowNumber, colNumber,
+         grain_yield,
+         pea_yield,
+         peaName,plantingDate)
+
+SDSU <- read_excel("data/multi_location_data.xlsx",
+                   sheet = "SDSU", skip = 2)%>%
+  mutate(grain_yield = as.numeric(`Grain yield - g/m2|CO_350:0000260`)) %>%
+  mutate(pea_yield = as.numeric(`Pea grain yield - g/m2|COMP:0000049`)) %>%
+  select(studyName,locationName,germplasmName,replicate, blockNumber,
+         plotNumber, rowNumber, colNumber,
+         grain_yield,
+         pea_yield,
+         peaName,plantingDate)
+
+
+multi_yield <- bind_rows(Wisconsin,Cornell,Illinois,SDSU)
+
+planting_dates <- multi_yield %>% select(locationName,plantingDate) %>% 
+  distinct()
+
+
+
+```
+
+
+### Rainfall Days After Planting
+```{r,  echo=FALSE}
+
+
+
+
+
+
+planting_dates %>% 
+  kable(align = "c") %>% 
+  kable_classic(full_width=F,position = "left")
+
+
+
+```
