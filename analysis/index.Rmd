@@ -31,7 +31,7 @@ editor_options:
 # Winter Oat-Pea Inter-cropping
 
 ### 2024
-
+[Winter Oat-Pea Summary](winter_oat-pea_2024.html)
 
 ### Source location of Winter Oat Founders
 
