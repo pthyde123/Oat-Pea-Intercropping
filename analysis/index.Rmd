@@ -36,3 +36,9 @@ editor_options:
 ### Source location of Winter Oat Founders
 
 [Source Map](grin_map/grin_map.html)
+
+
+# Workflows
+[Randomization to T3 Upload](randomization-to-t3-upload.html)
+
+
