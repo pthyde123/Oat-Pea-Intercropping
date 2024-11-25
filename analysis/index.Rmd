@@ -38,7 +38,12 @@ editor_options:
 [Source Map](grin_map/grin_map.html)
 
 
+
+
 # Workflows
+
+
+[Randomization](randomization.html)
+
+
 [Randomization to T3 Upload](randomization-to-t3-upload.html)
-
-
