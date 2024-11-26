@@ -47,3 +47,7 @@ editor_options:
 
 
 [Randomization to T3 Upload](randomization-to-t3-upload.html)
+
+
+[T3 Seedlots](seed_lot.html)
+
