@@ -24,7 +24,7 @@ library(readr)
 
 <br>
 
-### Overview of general steps
+### **Overview of general steps**
 
 1.  **Create seedlot**
 
@@ -296,7 +296,7 @@ bulk_seed %>%
 
 <br>
 
-### 4. Bulk seed labels
+### **4. Bulk seed labels**
 
 Bulk seed bags contain the seed for all plots of a given accession and
 will be divided into plot envelopes in the next step. Labels need to
@@ -337,7 +337,7 @@ Cornell_WinterOatPeaIntercrop_2024_Ithaca-PLOT_1
 
 <br>
 
-### 5. Plot seed labels
+### **5. Plot seed labels**
 
 The envelope printer uses a .csv file and **must have headers in this
 order** `source`, `plotNo`, `oatName`, `peaName.` Arrange by source plot
@@ -393,7 +393,7 @@ Put it on a thumb drive and take it to the printer.
 
 <br>
 
-### 6. Subtract weight used from seedlot
+### **6. Subtract weight used from seedlot**
 
 When the trial is uploaded to T3/Oat include the source seedlot names
 and weight of seed. It will then be removed from the seedlot.
