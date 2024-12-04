@@ -33,6 +33,9 @@ editor_options:
 ### 2024
 [Winter Oat-Pea Summary](winter_oat-pea_2024.html)
 
+[Winter Oat-Pea NDVI](NDVI_2024.html)
+
+
 ### Source location of Winter Oat Founders
 
 [Source Map](grin_map/grin_map.html)
