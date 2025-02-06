@@ -35,7 +35,7 @@ editor_options:
 
 [Winter Oat-Pea NDVI](NDVI_2024.html)
 
-[Biomass Estimates, Random Forest](Biomass-Estimate,-Random-Forest.html)
+[Biomass Estimates, Random Forest](Biomass_Estimate_Random_Forest.html)
 
 ### Source location of Winter Oat Founders
 
