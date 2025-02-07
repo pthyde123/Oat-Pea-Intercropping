@@ -52,7 +52,7 @@ editor_options:
 [Randomization](randomization.html)
 
 
-[Randomization to T3 Upload](randomization-to-t3-upload.html)
+[Randomization to T3 Upload](randomization_to_t3_upload.html)
 
 
 [T3 Seedlots](seed_lot.html)
