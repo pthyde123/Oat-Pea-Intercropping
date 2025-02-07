@@ -1,5 +1,5 @@
 ---
-title: "Oat-Pea Biomass Estimation, Random Forest"
+title: "Oat Biomass Estimation, Random Forest"
 author: "Peter Hyde"
 date: "2025-02-05"
 output: html_document
