@@ -37,7 +37,9 @@ editor_options:
 
 [Oat Biomass Estimates, Random Forest](Oat_Biomass_Estimate.html)
 
-[Oat-Pea Biomass Estimates, Random Forest](Oat-Pea_Biomass_Estimate.html)
+[Oat-Pea Oat-Biomass Estimates, Random Forest](Oat-Pea_Biomass_Estimate.html)
+
+[Oat-Pea Pea-Biomass Estimates, Random Forest](Pea_Biomass_Estimate.html)
 
 ### Source location of Winter Oat Founders
 
